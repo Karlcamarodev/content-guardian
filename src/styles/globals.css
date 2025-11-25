@@ -1,7 +1,12 @@
 @import './themes.css';
+/* stylelint-disable at-rule-no-unknown */
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
-@import 'tailwindcss/utilities';  margin: 0;
+@import 'tailwindcss/utilities';
+/* stylelint-enable at-rule-no-unknown */
+
+* {
+  margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
