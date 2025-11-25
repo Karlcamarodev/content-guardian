@@ -2,22 +2,20 @@
 
 > Enterprise-grade AI-powered content moderation platform with real-time analysis, risk classification, and comprehensive reporting dashboard
 
-[![Live Demo](https://img.shields.io/badge/demo-live-success?style=flat-square)](https://karlcamarodev.github.io/content-guardian/)
 [![Next.js](https://img.shields.io/badge/Next.js-14.2-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38bdf8?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)](LICENSE)
 
-![Content Guardian Preview](./public/images/preview.png)
-
 ---
 
 ## 🎯 Overview
 
-**Content Guardian** is a professional content moderation platform designed for Trust & Safety teams, community managers, and content moderators. It combines my real-world experience moderating online communities with modern web development to create a practical, scalable solution.
+**Content Guardian** is a professional content moderation platform designed for Trust & Safety teams, community managers, and content moderators. It combines real-world experience moderating online communities with modern web development to create a practical, scalable solution.
 
-This project demonstrates:
-- ✅ **Full-stack architecture** with Next.js App Router
+### Key Highlights
+
+- ✅ **Full-stack architecture** with Next.js 14 App Router
 - ✅ **Type-safe development** with TypeScript
 - ✅ **Scalable design patterns** ready for production
 - ✅ **Enterprise UI/UX** with professional components
@@ -60,9 +58,9 @@ This project demonstrates:
 | **Framework** | Next.js 14 | React framework with App Router |
 | **Language** | TypeScript 5.3 | Type-safe development |
 | **Styling** | Tailwind CSS 3.4 | Utility-first CSS framework |
-| **State Management** | React Hooks | Component state and side effects |
+| **State** | React Hooks | Component state management |
 | **Storage** | LocalStorage API | Client-side persistence |
-| **AI (Future)** | OpenAI / Custom Models | Machine learning integration |
+| **AI (Future)** | OpenAI / Custom | Machine learning integration |
 
 ---
 
@@ -70,9 +68,9 @@ This project demonstrates:
 
 ### Prerequisites
 
-- **Node.js** 18+ 
-- **npm** 9+
-- **Git**
+- Node.js 18+
+- npm 9+
+- Git
 
 ### Installation
 ```bash
@@ -104,83 +102,34 @@ npm start
 ```
 content-guardian/
 ├── src/
-│   ├── app/                    # Next.js App Router
-│   │   ├── api/               # API routes
-│   │   │   ├── analyze/       # Content analysis endpoint
-│   │   │   ├── logs/          # Logs management
-│   │   │   └── stats/         # Statistics endpoint
-│   │   ├── dashboard/         # Dashboard pages
-│   │   ├── layout.tsx         # Root layout
-│   │   └── page.tsx           # Home page
+│   ├── app/                # Next.js App Router
+│   │   ├── api/           # API routes
+│   │   ├── dashboard/     # Dashboard pages
+│   │   ├── layout.tsx     # Root layout
+│   │   └── page.tsx       # Home page
 │   ├── components/
-│   │   ├── features/          # Feature-specific components
-│   │   │   ├── analyzer/      # Content analyzer
-│   │   │   ├── logs/          # Activity logs
-│   │   │   └── stats/         # Statistics
-│   │   ├── layout/            # Layout components
-│   │   │   ├── Header.tsx
-│   │   │   ├── Sidebar.tsx
-│   │   │   └── Footer.tsx
-│   │   └── ui/                # Reusable UI components
-│   │       ├── Button.tsx
-│   │       ├── Card.tsx
-│   │       ├── Badge.tsx
-│   │       └── Input.tsx
-│   ├── hooks/                 # Custom React hooks
-│   ├── lib/                   # Core business logic
-│   │   ├── ai/               # AI analysis engine
-│   │   └── db/               # Data persistence
-│   ├── styles/               # Global styles
-│   │   ├── globals.css
-│   │   └── themes.css
-│   ├── types/                # TypeScript definitions
-│   └── utils/                # Helper functions
-├── public/                   # Static assets
-├── docs/                     # Documentation
-└── [config files]           # Configuration
+│   │   ├── features/      # Feature components
+│   │   ├── layout/        # Layout components
+│   │   └── ui/            # UI components
+│   ├── hooks/             # Custom React hooks
+│   ├── lib/               # Core business logic
+│   ├── styles/            # Global styles
+│   ├── types/             # TypeScript definitions
+│   └── utils/             # Helper functions
+├── public/                # Static assets
+└── [config files]         # Configuration
 ```
 
 ---
 
-## 🎨 Key Features Explained
+## 💡 Why This Project Matters
 
-### Content Analysis Engine
+**Content Guardian** bridges two worlds:
 
-The platform uses a sophisticated heuristic-based analysis system that:
+1. **Real-world experience** - Moderated communities with 50+ active members, 95% conflict resolution rate, worked with TikTok agencies
+2. **Technical skills** - Modern web development with Next.js, TypeScript, and scalable architecture
 
-1. **Tokenizes content** - Breaks down text into analyzable components
-2. **Pattern matching** - Identifies problematic keywords and phrases
-3. **Contextual analysis** - Considers surrounding text for accuracy
-4. **Risk scoring** - Calculates weighted risk scores (0-100)
-5. **Confidence rating** - Provides confidence percentage for each classification
-
-**Example Analysis:**
-```typescript
-{
-  id: "abc123",
-  content: "Sample text...",
-  riskLevel: "caution",
-  confidence: 87,
-  score: 45,
-  detectedIssues: [
-    {
-      category: "spam",
-      severity: 30,
-      description: "Excessive punctuation detected"
-    }
-  ],
-  timestamp: "2024-11-24T22:00:00.000Z",
-  processingTime: 156
-}
-```
-
-### Modular Architecture
-
-Each component is designed to be:
-- ✅ **Independent** - Can function standalone
-- ✅ **Reusable** - Used across different features
-- ✅ **Type-safe** - Full TypeScript coverage
-- ✅ **Testable** - Easy to unit test
+This isn't just a portfolio project—it's a practical tool that solves real problems in the Trust & Safety industry.
 
 ---
 
@@ -217,33 +166,14 @@ Each component is designed to be:
 
 ---
 
-## 💡 Why This Project Matters
-
-**Content Guardian** bridges two worlds:
-
-1. **Real-world experience** - I've moderated communities with 50+ active members, resolved conflicts with 95% success rate, and worked with TikTok agencies
-2. **Technical skills** - Modern web development with Next.js, TypeScript, and scalable architecture
-
-This isn't just a portfolio project—it's a practical tool that solves real problems in the Trust & Safety industry.
-
----
-
 ## 🤝 Contributing
 
-Contributions are welcome! Whether you're:
+Contributions are welcome! Feel free to:
 
-- 🐛 Reporting bugs
-- 💡 Suggesting features
-- 🔧 Submitting pull requests
-- 📖 Improving documentation
-
-### Development Setup
-```bash
-git clone https://github.com/Karlcamarodev/content-guardian.git
-cd content-guardian
-npm install
-npm run dev
-```
+- 🐛 Report bugs
+- 💡 Suggest features
+- 🔧 Submit pull requests
+- 📖 Improve documentation
 
 ---
 
@@ -257,9 +187,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Karl Hervin Camaro Porta**
 
-Self-taught developer combining hands-on community moderation experience with modern web development skills to create practical solutions for the Trust & Safety industry.
+Self-taught developer combining hands-on community moderation experience with modern web development skills.
 
-- 🌐 **Portfolio:** [Coming Soon]
 - 💼 **LinkedIn:** [Karl Camaro](https://linkedin.com/in/karl-hervin-camaro-porta-15b443395)
 - 🐙 **GitHub:** [@Karlcamarodev](https://github.com/Karlcamarodev)
 - 📧 **Email:** camaroportakarlhervin@gmail.com
@@ -275,26 +204,26 @@ From managing online communities to building the tools that power them.
 
 ## 🙏 Acknowledgments
 
-- **Next.js Team** - Amazing React framework
+- **Next.js Team** - React framework
 - **Vercel** - Deployment platform
 - **Tailwind CSS** - Utility-first CSS
-- **TypeScript** - Type safety and DX
+- **TypeScript** - Type safety
 - **Open Source Community** - Continuous learning
 
 ---
 
 ## 📚 Related Projects
 
-- 🎮 **[Quest Manager](https://github.com/Karlcamarodev/quest-manager)** - Gamified task management with RPG mechanics
-- 📊 **[TikTok Dashboard](https://github.com/Karlcamarodev/tiktok-dashboard)** - Real-time analytics for content creators
-- 💼 **[Portfolio](https://github.com/Karlcamarodev/portfolio)** - Personal website showcasing my work
+- 🎮 **[Quest Manager](https://github.com/Karlcamarodev/quest-manager)** - Gamified task management
+- 📊 **[TikTok Dashboard](https://github.com/Karlcamarodev/tiktok-dashboard)** - Real-time analytics
+- 💼 **[Portfolio](https://github.com/Karlcamarodev/portfolio)** - Personal website
 
 ---
 
 <div align="center">
 
-**⭐ If you find this project useful, please consider giving it a star!**
+**⭐ If you find this project useful, please give it a star!**
 
-**Made with ❤️ and ☕ by [Karl Camaro](https://github.com/Karlcamarodev)**
+**Made with ❤️ by [Karl Camaro](https://github.com/Karlcamarodev)**
 
 </div>
