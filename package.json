@@ -1,0 +1,60 @@
+{
+  "name": "content-guardian",
+  "version": "1.0.0",
+  "description": "Enterprise-grade AI-powered content moderation platform with real-time analysis and comprehensive reporting",
+  "author": {
+    "name": "Karl Hervin Camaro Porta",
+    "email": "camaroportakarlhervin@gmail.com",
+    "url": "https://github.com/Karlcamarodev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Karlcamarodev/content-guardian"
+  },
+  "keywords": [
+    "content-moderation",
+    "trust-and-safety",
+    "ai",
+    "nextjs",
+    "typescript",
+    "react",
+    "moderation-tools"
+  ],
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css,md}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,css,md}\""
+  },
+  "dependencies": {
+    "clsx": "^2.1.0",
+    "next": "^14.1.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/react": "^18.2.48",
+    "@types/react-dom": "^18.2.18",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0",
+    "autoprefixer": "^10.4.22",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "^14.1.0",
+    "eslint-config-prettier": "^9.1.0",
+    "postcss": "^8.5.6",
+    "prettier": "^3.2.4",
+    "tailwindcss": "^3.4.18",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "license": "MIT"
+}
