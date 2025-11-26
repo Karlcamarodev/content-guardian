@@ -2,10 +2,17 @@
 
 > Enterprise-grade AI-powered content moderation platform with real-time analysis, risk classification, and comprehensive reporting dashboard
 
+[![Live Demo](https://img.shields.io/badge/demo-live-success?style=flat-square&logo=vercel&logoColor=white)](https://content-guardian.vercel.app)
 [![Next.js](https://img.shields.io/badge/Next.js-14.2-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38bdf8?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)](LICENSE)
+
+---
+
+## 🚀 Live Demo
+
+**Visit the live application:** [https://content-guardian.vercel.app](https://content-guardian.vercel.app)
 
 ---
 
@@ -60,6 +67,7 @@
 | **Styling** | Tailwind CSS 3.4 | Utility-first CSS framework |
 | **State** | React Hooks | Component state management |
 | **Storage** | LocalStorage API | Client-side persistence |
+| **Deployment** | Vercel | Production hosting |
 | **AI (Future)** | OpenAI / Custom | Machine learning integration |
 
 ---
@@ -141,6 +149,7 @@ This isn't just a portfolio project—it's a practical tool that solves real pro
 - [x] Basic UI components
 - [x] Landing page
 - [x] Theme system
+- [x] Production deployment
 
 ### Phase 2: Core Features 🔄 (In Progress)
 - [ ] Complete dashboard
@@ -216,7 +225,7 @@ From managing online communities to building the tools that power them.
 
 - 🎮 **[Quest Manager](https://github.com/Karlcamarodev/quest-manager)** - Gamified task management
 - 📊 **[TikTok Dashboard](https://github.com/Karlcamarodev/tiktok-dashboard)** - Real-time analytics
-- 💼 **[Portfolio](https://github.com/Karlcamarodev/portfolio)** - Personal website
+- 💼 **[Portfolio](https://github.com/Karlcamarodev/portfolio)** - Personal website (coming soon)
 
 ---
 
@@ -225,5 +234,7 @@ From managing online communities to building the tools that power them.
 **⭐ If you find this project useful, please give it a star!**
 
 **Made with ❤️ by [Karl Camaro](https://github.com/Karlcamarodev)**
+
+[🌐 Live Demo](https://content-guardian.vercel.app) • [📝 Documentation](https://github.com/Karlcamarodev/content-guardian) • [🐛 Report Bug](https://github.com/Karlcamarodev/content-guardian/issues)
 
 </div>
