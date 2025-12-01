@@ -1,30 +1,57 @@
-import type { ReactNode } from 'react';
-import '../styles/globals.css';
+import type { Metadata } from "next";
+import "../styles/globals.css";
 
-export const metadata = {
-  title: 'Content Guardian - AI Content Moderation',
-  description: 'Enterprise-grade AI-powered content moderation platform with real-time analysis and comprehensive reporting',
-  icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon-16x16.png',
-    apple: '/apple-touch-icon.png',
+export const metadata: Metadata = {
+  metadataBase: new URL('https://content-guardian-five.vercel.app'),
+  
+  title: {
+    default: "Content Guardian - AI-Powered Moderation",
+    template: "%s | Content Guardian"
+  },
+  
+  description: "AI-powered content moderation platform with real-time analysis, sentiment detection, and automated workflows. Built by Karl Camaro.",
+  
+  keywords: [
+    "content moderation",
+    "AI moderation",
+    "sentiment analysis",
+    "content filtering",
+    "automated moderation"
+  ],
+  
+  authors: [{ name: "Karl Camaro", url: "https://github.com/Karlcamarodev" }],
+  creator: "Karl Camaro",
+  
+  openGraph: {
+    title: "Content Guardian - AI-Powered Moderation",
+    description: "AI-powered content moderation platform",
+    url: "https://content-guardian-five.vercel.app",
+    siteName: "Content Guardian",
+    locale: 'en_US',
+    type: 'website',
+  },
+  
+  twitter: {
+    card: 'summary_large_image',
+    title: "Content Guardian",
+    description: "AI-powered content moderation platform",
+    creator: '@karlcamaro1',
+  },
+  
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 
 export default function RootLayout({
   children,
-}: {
-  children: ReactNode;
-}) {
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <html lang="en">
-      <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png" />
-        <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-      </head>
-      <body className="antialiased">{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <body>{children}</body>
     </html>
   );
 }
