@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { SpeedInsights } from '@vercel/speed-insights/next';
+import { Analytics } from '@vercel/analytics/react';
 import "../styles/globals.css";
 
 export const metadata: Metadata = {
@@ -16,15 +18,20 @@ export const metadata: Metadata = {
     "AI moderation",
     "sentiment analysis",
     "content filtering",
-    "automated moderation"
+    "automated moderation",
+    "trust and safety",
+    "AI content analysis"
   ],
   
-  authors: [{ name: "Karl Camaro", url: "https://github.com/Karlcamarodev" }],
+  authors: [
+    { name: "Karl Camaro", url: "https://github.com/Karlcamarodev" }
+  ],
+  
   creator: "Karl Camaro",
   
   openGraph: {
     title: "Content Guardian - AI-Powered Moderation",
-    description: "AI-powered content moderation platform",
+    description: "AI-powered content moderation platform with real-time analysis",
     url: "https://content-guardian-five.vercel.app",
     siteName: "Content Guardian",
     locale: 'en_US',
@@ -41,6 +48,13 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
   },
 };
 
@@ -51,7 +65,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>{children}</body>
+      <body>
+        {children}
+        <SpeedInsights />
+        <Analytics />
+      </body>
     </html>
   );
 }
