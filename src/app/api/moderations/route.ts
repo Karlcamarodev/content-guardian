@@ -1,4 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+
+/**
+ * Forzamos a Next a tratar esta ruta como dinámica.
+ * Así no intenta prerenderla ni da warnings de "dynamic server usage".
+ */
+export const dynamic = "force-dynamic";
 
 /**
  * Estado de moderación de cada ítem.
@@ -52,11 +58,11 @@ const MOCK_ITEMS: ModerationItem[] = (() => {
 })();
 
 /**
- * Maneja GET /api/moderations?page=1&pageSize=20
+ * GET /api/moderations?page=1&pageSize=20
  */
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    const searchParams = request.nextUrl.searchParams;
 
     const page = Math.max(parseInt(searchParams.get("page") || "1", 10), 1);
     const pageSize = Math.max(parseInt(searchParams.get("pageSize") || "20", 10), 1);
