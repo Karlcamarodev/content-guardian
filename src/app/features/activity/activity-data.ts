@@ -1,0 +1,58 @@
+import type { ActivityItem } from "./activity-card";
+
+export const recentActivity: ActivityItem[] = [
+  {
+    id: 28,
+    name: "Lucía Martínez",
+    username: "@lucia_martinez",
+    minutesAgo: 2,
+    status: "aprobado",
+    sentiment: "positivo",
+    message: "¡Excelente producto! Lo recomiendo ampliamente.",
+  },
+  {
+    id: 19,
+    name: "Carlos Herrera",
+    username: "@carlosh_dev",
+    minutesAgo: 5,
+    status: "marcado",
+    sentiment: "negativo",
+    message: "Este es contenido spam con enlaces sospechosos...",
+  },
+  {
+    id: 34,
+    name: "María Gómez",
+    username: "@maria_g",
+    minutesAgo: 8,
+    status: "pendiente",
+    sentiment: "neutral",
+    message: "Experiencia promedio, nada especial.",
+  },
+  {
+    id: 78,
+    name: "Javier Ruiz",
+    username: "@ruizjavier",
+    minutesAgo: 12,
+    status: "aprobado",
+    sentiment: "positivo",
+    message: "¡Excelente servicio al cliente y entrega rápida!",
+  },
+  {
+    id: 52,
+    name: "Ana López",
+    username: "@ana_lopez",
+    minutesAgo: 15,
+    status: "marcado",
+    sentiment: "negativo",
+    message: "Comentarios ofensivos detectados en esta reseña.",
+  },
+  {
+    id: 63,
+    name: "Diego Torres",
+    username: "@dtorres",
+    minutesAgo: 20,
+    status: "pendiente",
+    sentiment: "neutral",
+    message: "El sistema funciona, pero podría ser más intuitivo.",
+  },
+];
