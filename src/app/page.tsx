@@ -1,500 +1,1151 @@
 "use client";
 
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import Image from "next/image";
+import { useState, useEffect, useCallback, useRef } from "react";
 
-/* ------------------------------------------------------------------ */
-/*  TIPOS: DEBEN COINCIDIR CON /api/moderations                       */
-/* ------------------------------------------------------------------ */
+/* ============================================================
+   Tipos
+   ============================================================ */
 
-type ModerationStatus = "pending" | "approved" | "rejected" | "flagged";
+type Sentiment = "positive" | "negative" | "neutral";
+type Status = "approved" | "flagged" | "pending" | "rejected";
 
-export interface ModerationItem {
-  id: string;
-  userName: string;
-  avatarUrl?: string;
+type RecentItem = {
+  id: number;
+  user: string;
   content: string;
-  category: string;
-  riskLevel: "low" | "medium" | "high";
-  createdAt: string;
-  status: ModerationStatus;
+  sentiment: Sentiment;
+  status: Status;
+  timestamp: string;
+};
+
+type ActionType = "approve" | "reject" | "flag" | "review";
+
+/* ============================================================
+   Datos base (mock DB)
+   ============================================================ */
+
+const ALL_CONTENT: RecentItem[] = [
+  {
+    id: 1,
+    user: "Lucía Martínez (@lucia_martinez)",
+    content: "¡Excelente producto! Lo recomiendo ampliamente.",
+    sentiment: "positive",
+    status: "approved",
+    timestamp: "Hace 2 minutos",
+  },
+  {
+    id: 2,
+    user: "Carlos Herrera (@carlosh_dev)",
+    content: "Este es contenido spam con enlaces sospechosos...",
+    sentiment: "negative",
+    status: "flagged",
+    timestamp: "Hace 5 minutos",
+  },
+  {
+    id: 3,
+    user: "María Gómez (@maria_g)",
+    content: "Experiencia promedio, nada especial.",
+    sentiment: "neutral",
+    status: "pending",
+    timestamp: "Hace 8 minutos",
+  },
+  {
+    id: 4,
+    user: "Javier Ruiz (@ruizjavier)",
+    content: "Excelente servicio al cliente y entrega rápida.",
+    sentiment: "positive",
+    status: "approved",
+    timestamp: "Hace 12 minutos",
+  },
+  {
+    id: 5,
+    user: "Ana López (@ana_lopez)",
+    content: "El contenido es útil, pero algunas políticas no son claras.",
+    sentiment: "neutral",
+    status: "pending",
+    timestamp: "Hace 16 minutos",
+  },
+  {
+    id: 6,
+    user: "Diego Torres (@dtorres)",
+    content: "Se detectaron varios comentarios ofensivos en este hilo.",
+    sentiment: "negative",
+    status: "flagged",
+    timestamp: "Hace 21 minutos",
+  },
+
+  // -------------------------
+  // NUEVOS 30 USUARIOS
+  // -------------------------
+
+  {
+    id: 7,
+    user: "Valentina Rivas (@valerivas)",
+    content: "Muy buena atención por parte del soporte técnico.",
+    sentiment: "positive",
+    status: "approved",
+    timestamp: "Hace 25 minutos",
+  },
+  {
+    id: 8,
+    user: "Sebastián Molina (@seba_molina)",
+    content: "Este usuario está enviando enlaces repetitivos.",
+    sentiment: "negative",
+    status: "flagged",
+    timestamp: "Hace 28 minutos",
+  },
+  {
+    id: 9,
+    user: "Camila Ortiz (@camila_ortiz)",
+    content:
+      "El producto llegó en buen estado, pero tardó más de lo estimado.",
+    sentiment: "neutral",
+    status: "pending",
+    timestamp: "Hace 30 minutos",
+  },
+  {
+    id: 10,
+    user: "Luis Sánchez (@luissz)",
+    content: "Todo perfecto, volveré a comprar.",
+    sentiment: "positive",
+    status: "approved",
+    timestamp: "Hace 34 minutos",
+  },
+  {
+    id: 11,
+    user: "Fernanda Díaz (@fer_diaz)",
+    content: "Detecté comentarios que parecen generados automáticamente.",
+    sentiment: "negative",
+    status: "flagged",
+    timestamp: "Hace 38 minutos",
+  },
+  {
+    id: 12,
+    user: "Matías Vega (@mvega_97)",
+    content: "Buena experiencia general.",
+    sentiment: "neutral",
+    status: "pending",
+    timestamp: "Hace 42 minutos",
+  },
+  {
+    id: 13,
+    user: "Paola Castro (@paolacastro)",
+    content: "Un servicio rápido y confiable.",
+    sentiment: "positive",
+    status: "approved",
+    timestamp: "Hace 45 minutos",
+  },
+  {
+    id: 14,
+    user: "Héctor Jiménez (@hectorjim)",
+    content: "El contenido enviado tiene insultos explícitos.",
+    sentiment: "negative",
+    status: "flagged",
+    timestamp: "Hace 48 minutos",
+  },
+  {
+    id: 15,
+    user: "Daniela Flores (@dani_flores)",
+    content: "Considero que este comentario es inapropiado.",
+    sentiment: "neutral",
+    status: "pending",
+    timestamp: "Hace 52 minutos",
+  },
+  {
+    id: 16,
+    user: "Tomás Aguilar (@tom_aguilar)",
+    content: "Todo excelente, gracias por la atención.",
+    sentiment: "positive",
+    status: "approved",
+    timestamp: "Hace 55 minutos",
+  },
+  {
+    id: 17,
+    user: "Sofía Marín (@sofiamarin_)",
+    content: "Comentarios repetitivos detectados, podrían ser spam.",
+    sentiment: "negative",
+    status: "flagged",
+    timestamp: "Hace 59 minutos",
+  },
+  {
+    id: 18,
+    user: "Bruno Castillo (@brunocast)",
+    content: "La calidad es aceptable por el precio.",
+    sentiment: "neutral",
+    status: "pending",
+    timestamp: "Hace 1 hora",
+  },
+  {
+    id: 19,
+    user: "Elena Vargas (@elenavargas)",
+    content: "Una de las mejores experiencias de compra.",
+    sentiment: "positive",
+    status: "approved",
+    timestamp: "Hace 1 hora y 5 minutos",
+  },
+  {
+    id: 20,
+    user: "Gabriel Rojas (@g_rojass)",
+    content: "El comentario incluye enlaces que parecen phishing.",
+    sentiment: "negative",
+    status: "flagged",
+    timestamp: "Hace 1 hora y 10 minutos",
+  },
+  {
+    id: 21,
+    user: "Adriana Campos (@adri_campos)",
+    content: "El servicio podría ser más rápido, pero no está mal.",
+    sentiment: "neutral",
+    status: "pending",
+    timestamp: "Hace 1 hora y 13 minutos",
+  },
+  {
+    id: 22,
+    user: "Ricardo Peña (@ricardo_p)",
+    content: "Muy satisfecho con el resultado.",
+    sentiment: "positive",
+    status: "approved",
+    timestamp: "Hace 1 hora y 18 minutos",
+  },
+  {
+    id: 23,
+    user: "Julia Medina (@jmedina98)",
+    content: "Comentario agresivo detectado.",
+    sentiment: "negative",
+    status: "flagged",
+    timestamp: "Hace 1 hora y 22 minutos",
+  },
+  {
+    id: 24,
+    user: "Andrés Navarro (@andresnavarro)",
+    content: "La plataforma funciona bien, aunque faltan detalles.",
+    sentiment: "neutral",
+    status: "pending",
+    timestamp: "Hace 1 hora y 25 minutos",
+  },
+  {
+    id: 25,
+    user: "Bianca Herrera (@biancaherrera)",
+    content: "Excelente soporte al cliente.",
+    sentiment: "positive",
+    status: "approved",
+    timestamp: "Hace 1 hora y 30 minutos",
+  },
+  {
+    id: 26,
+    user: "Samuel Cortés (@samcortes)",
+    content: "Contenido duplicado reportado.",
+    sentiment: "negative",
+    status: "flagged",
+    timestamp: "Hace 1 hora y 34 minutos",
+  },
+  {
+    id: 27,
+    user: "Nicole Zamora (@nic_zamora)",
+    content: "No está mal, pero puede mejorar.",
+    sentiment: "neutral",
+    status: "pending",
+    timestamp: "Hace 1 hora y 38 minutos",
+  },
+  {
+    id: 28,
+    user: "Federico Lara (@felara)",
+    content: "Un servicio excelente como siempre.",
+    sentiment: "positive",
+    status: "approved",
+    timestamp: "Hace 1 hora y 42 minutos",
+  },
+  {
+    id: 29,
+    user: "Renata Silva (@renata_silva)",
+    content: "Este comentario es malintencionado.",
+    sentiment: "negative",
+    status: "flagged",
+    timestamp: "Hace 1 hora y 45 minutos",
+  },
+  {
+    id: 30,
+    user: "Oscar Medina (@oscarmed)",
+    content: "Experiencia neutral, nada fuera de lo común.",
+    sentiment: "neutral",
+    status: "pending",
+    timestamp: "Hace 1 hora y 48 minutos",
+  },
+  {
+    id: 31,
+    user: "Marisol Fuentes (@marisolf)",
+    content: "Muy buena interacción.",
+    sentiment: "positive",
+    status: "approved",
+    timestamp: "Hace 1 hora y 52 minutos",
+  },
+  {
+    id: 32,
+    user: "Ignacio León (@ignacioleon)",
+    content: "Varias señales de comportamiento sospechoso.",
+    sentiment: "negative",
+    status: "flagged",
+    timestamp: "Hace 1 hora y 56 minutos",
+  },
+  {
+    id: 33,
+    user: "Ariana Ponce (@ariponce)",
+    content: "El contenido es válido, pero requiere revisión adicional.",
+    sentiment: "neutral",
+    status: "pending",
+    timestamp: "Hace 2 horas",
+  },
+  {
+    id: 34,
+    user: "Rodrigo Campos (@rocampos)",
+    content: "Más que satisfecho con el resultado.",
+    sentiment: "positive",
+    status: "approved",
+    timestamp: "Hace 2 horas y 5 minutos",
+  },
+  {
+    id: 35,
+    user: "Carla Suárez (@carlasrzz)",
+    content: "Envió insultos directos a otros usuarios.",
+    sentiment: "negative",
+    status: "flagged",
+    timestamp: "Hace 2 horas y 10 minutos",
+  },
+  {
+    id: 36,
+    user: "Hugo Medina (@hmedina)",
+    content: "Comentario aceptable, aunque simple.",
+    sentiment: "neutral",
+    status: "pending",
+    timestamp: "Hace 2 horas y 15 minutos",
+  },
+];
+
+const PAGE_SIZE = 8;
+
+const statusConfig: Record<Status, { label: string; className: string }> = {
+  approved: {
+    label: "aprobado",
+    className: "bg-green-500/20 text-green-400 border border-green-500/30",
+  },
+  flagged: {
+    label: "marcado",
+    className: "bg-red-500/20 text-red-400 border border-red-500/30",
+  },
+  pending: {
+    label: "pendiente",
+    className:
+      "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30",
+  },
+  rejected: {
+    label: "rechazado",
+    className: "bg-rose-500/20 text-rose-300 border border-rose-500/30",
+  },
+};
+
+const sentimentConfig: Record<Sentiment, { label: string; className: string }> =
+  {
+    positive: {
+      label: "positivo",
+      className: "bg-blue-500/20 text-blue-400 border border-blue-500/30",
+    },
+    negative: {
+      label: "negativo",
+      className: "bg-red-500/20 text-red-400 border border-red-500/30",
+    },
+    neutral: {
+      label: "neutral",
+      className: "bg-gray-500/20 text-gray-400 border border-gray-500/30",
+    },
+  };
+
+/* ============================================================
+   Mock API local (simula una API paginada)
+   ============================================================ */
+
+function mockFetchReviews(
+  page: number,
+  pageSize: number
+): Promise<{ items: RecentItem[]; hasMore: boolean }> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const start = (page - 1) * pageSize;
+      const end = start + pageSize;
+      const slice = ALL_CONTENT.slice(start, end);
+      resolve({
+        items: slice,
+        hasMore: end < ALL_CONTENT.length,
+      });
+    }, 400); // simula latencia de red
+  });
 }
 
-interface ModerationApiResponse {
-  items: ModerationItem[];
-  hasMore: boolean;
-}
+/* ============================================================
+   Plantillas para el botón "Generar contenido IA"
+   ============================================================ */
 
-const PAGE_SIZE = 20;
+const AI_TEMPLATES: Array<
+  Pick<RecentItem, "user" | "content" | "sentiment" | "status">
+> = [
+  {
+    user: "IA Moderador (@ai_guardian)",
+    content:
+      "Se detectó un lenguaje ambiguo, se recomienda revisión manual.",
+    sentiment: "neutral",
+    status: "pending",
+  },
+  {
+    user: "IA Insights (@ai_insights)",
+    content:
+      "Alta probabilidad de ser contenido seguro según el modelo.",
+    sentiment: "positive",
+    status: "approved",
+  },
+  {
+    user: "IA Detector (@ai_detector)",
+    content:
+      "Se encontraron patrones similares a campañas de spam conocidas.",
+    sentiment: "negative",
+    status: "flagged",
+  },
+];
 
-/* ------------------------------------------------------------------ */
-/*  PÁGINA PRINCIPAL                                                  */
-/* ------------------------------------------------------------------ */
+/* ============================================================
+   Componente principal
+   ============================================================ */
 
-const ContentGuardianPage: React.FC = () => {
-  // Lista de moderaciones ya cargadas
-  const [items, setItems] = useState<ModerationItem[]>([]);
+export default function Home() {
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "moderation" | "analytics"
+  >("overview");
 
-  // Paginación por número de página
+  const [items, setItems] = useState<RecentItem[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
 
-  // Estados de carga / error
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Ref para evitar múltiples peticiones simultáneas
-  const loadingRef = useRef(false);
-
-  // Ref al sentinel para IntersectionObserver
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const loadingRef = useRef(false); // evita peticiones simultáneas
 
-  /* ------------------------------------------------------------------ */
-  /*  FUNCIÓN DE PETICIÓN A LA API                                      */
-  /* ------------------------------------------------------------------ */
+  // Mock de métricas globales
+  const stats = {
+    totalReviews: 1247,
+    flaggedContent: 89,
+    approvedContent: 1158,
+    avgResponseTime: "2.3m",
+    accuracyRate: 94.5,
+    activeUsers: 156,
+  };
 
-  const fetchPage = useCallback(async (pageToLoad: number) => {
-    const res = await fetch(
-      `/api/moderations?page=${pageToLoad}&pageSize=${PAGE_SIZE}`,
-      {
-        method: "GET",
-      }
-    );
-
-    if (!res.ok) {
-      throw new Error("Error al cargar los datos de moderación");
-    }
-
-    const data: ModerationApiResponse = await res.json();
-    return data;
-  }, []);
-
-  /* ------------------------------------------------------------------ */
-  /*  LÓGICA DE CARGA (INICIAL + INFINITE SCROLL)                       */
-  /* ------------------------------------------------------------------ */
+  /* -------------------------
+     Carga paginada (API mock)
+     ------------------------- */
 
   const loadMore = useCallback(async () => {
     if (loadingRef.current || !hasMore) return;
 
     loadingRef.current = true;
-    setIsLoadingMore(true);
-    setError(null);
+    setLoading(true);
 
     try {
-      const nextPage = page;
-      const data = await fetchPage(nextPage);
-
-      // CLAVE: nunca vaciar la lista, siempre hacer append
-      setItems((prev) => [...prev, ...data.items]);
-      setHasMore(data.hasMore);
-
-      if (data.items.length > 0) {
-        setPage((prev) => prev + 1);
-      }
-    } catch (err) {
-      console.error(err);
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Ocurrió un error desconocido al cargar más datos"
+      const { items: newItems, hasMore: more } = await mockFetchReviews(
+        page,
+        PAGE_SIZE
       );
+
+      // nunca vaciamos, solo agregamos al final
+      setItems((prev) => [...prev, ...newItems]);
+      setHasMore(more);
+      setPage((prev) => prev + 1);
     } finally {
-      setIsInitialLoading(false);
-      setIsLoadingMore(false);
+      setLoading(false);
       loadingRef.current = false;
     }
-  }, [fetchPage, hasMore, page]);
+  }, [page, hasMore]);
 
-  // Carga inicial
   useEffect(() => {
+    // primera carga
     loadMore();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadMore]);
 
-  // Configuración del IntersectionObserver
+  /* -------------------------
+     Scroll infinito optimizado
+     ------------------------- */
+
   useEffect(() => {
-    const node = sentinelRef.current;
-    if (!node) return;
+    const el = sentinelRef.current;
+    if (!el || !hasMore) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         const [entry] = entries;
-        if (entry.isIntersecting && hasMore && !loadingRef.current) {
+        if (!entry.isIntersecting) return;
+
+        if (hasMore && !loadingRef.current) {
           loadMore();
         }
       },
       {
         root: null,
-        rootMargin: "400px 0px 0px 0px", // carga anticipada
+        // dispara antes de llegar al final para evitar “pantalla vacía”
+        rootMargin: "300px 0px 0px 0px",
         threshold: 0.1,
       }
     );
 
-    observer.observe(node);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [loadMore, hasMore]);
 
-    return () => {
-      observer.disconnect();
+  /* -------------------------
+     Acciones sobre un ítem
+     ------------------------- */
+
+  const showToast = (message: string) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 2200);
+  };
+
+  const handleAction = (id: number, action: ActionType) => {
+    setItems((prev) =>
+      prev.map((item) => {
+        if (item.id !== id) return item;
+        let newStatus: Status = item.status;
+
+        if (action === "approve") newStatus = "approved";
+        if (action === "reject") newStatus = "rejected";
+        if (action === "flag") newStatus = "flagged";
+        if (action === "review") newStatus = "pending";
+
+        return {
+          ...item,
+          status: newStatus,
+          timestamp: "Actualizado hace un momento",
+        };
+      })
+    );
+
+    const label =
+      action === "approve"
+        ? "Aprobado"
+        : action === "reject"
+        ? "Rechazado"
+        : action === "flag"
+        ? "Marcado con bandera"
+        : "Enviado a revisión";
+
+    showToast(`${label} correctamente.`);
+  };
+
+  /* -------------------------
+     Generar contenido IA (mock local)
+     ------------------------- */
+
+  const handleGenerateAI = () => {
+    const template =
+      AI_TEMPLATES[Math.floor(Math.random() * AI_TEMPLATES.length)];
+
+    const maxId = items.length
+      ? Math.max(...items.map((i) => i.id))
+      : ALL_CONTENT.length;
+
+    const aiItem: RecentItem = {
+      id: maxId + 1,
+      user: template.user,
+      content: template.content,
+      sentiment: template.sentiment,
+      status: template.status,
+      timestamp: "Generado por IA · ahora",
     };
-  }, [hasMore, loadMore]);
 
-  const isEmpty = useMemo(
-    () => !isInitialLoading && items.length === 0,
-    [isInitialLoading, items.length]
-  );
+    setItems((prev) => [aiItem, ...prev]);
+    showToast("Contenido generado por IA (mock local).");
+  };
 
-  /* ------------------------------------------------------------------ */
-  /*  UI PRINCIPAL                                                      */
-  /* ------------------------------------------------------------------ */
+  const currentPage = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(ALL_CONTENT.length / PAGE_SIZE));
+
+  /* ============================================================
+     RENDER
+     ============================================================ */
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 text-slate-50">
-      {/* HEADER */}
-      <header className="border-b border-slate-800 bg-slate-950/80 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-          <div>
-            <h1 className="text-xl font-semibold tracking-tight">
-              Content Guardian
-            </h1>
-            <p className="text-sm text-slate-400">
-              Enterprise-grade content moderation dashboard.
-            </p>
-          </div>
+    <main className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      {/* Toast simple */}
+      {toast && (
+        <div className="fixed top-4 left-1/2 z-50 -translate-x-1/2 rounded-full bg-black/70 px-4 py-2 text-xs sm:text-sm text-white shadow-lg">
+          {toast}
+        </div>
+      )}
 
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              className="rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-200 hover:bg-slate-800"
-            >
-              Generar contenido IA
-            </button>
-            <div className="flex items-center gap-2 rounded-full bg-slate-900 px-3 py-1">
-              <span className="h-2 w-2 rounded-full bg-emerald-400" />
-              <span className="text-xs text-slate-300">Sistema estable</span>
+      {/* Header */}
+      <header className="border-b border-white/10 backdrop-blur-md bg-white/5 sticky top-0 z-40">
+        <div className="container mx-auto px-4 py-3 sm:py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg">
+                <svg
+                  className="w-5 h-5 sm:w-6 sm:h-6 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h1 className="text-base sm:text-xl font-bold text-white">
+                  Content Guardian
+                </h1>
+                <p className="text-[10px] sm:text-xs text-gray-300">
+                  AI-Powered Content Moderation
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 sm:gap-4">
+              <button className="hidden sm:block px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors text-sm">
+                Settings
+              </button>
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full animate-pulse" />
+                <span className="text-xs sm:text-sm text-gray-300">
+                  Online
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </header>
 
-      {/* CONTENIDO PRINCIPAL */}
-      <section className="mx-auto max-w-6xl px-4 py-6">
-        {/* KPIs rápidos */}
-        <div className="mb-6 grid gap-4 md:grid-cols-3">
-          <KpiCard
-            label="Pendientes"
-            value={items.filter((i) => i.status === "pending").length}
-          />
-          <KpiCard
-            label="Aprobados"
-            value={items.filter((i) => i.status === "approved").length}
-          />
-          <KpiCard
-            label="Rechazados"
-            value={items.filter((i) => i.status === "rejected").length}
-          />
-        </div>
-
-        {/* GRID PRINCIPAL */}
-        <div className="grid gap-6 md:grid-cols-[minmax(0,2.2fr),minmax(0,1fr)]">
-          {/* COLUMNA IZQUIERDA: COLA DE MODERACIÓN */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4 shadow-xl shadow-slate-950/40">
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <div>
-                <h2 className="text-sm font-semibold uppercase tracking-[0.15em] text-slate-400">
-                  Cola de moderación
-                </h2>
-                <p className="text-xs text-slate-500">
-                  Desplázate hacia abajo para cargar más contenido
-                  automáticamente.
-                </p>
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 mb-6 sm:mb-8">
+          {/* Total Reviews */}
+          <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-4 sm:p-6 hover:bg-white/10 transition-all">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <div className="p-2 sm:p-3 bg-blue-500/20 rounded-lg">
+                <svg
+                  className="w-4 h-4 sm:w-6 sm:h-6 text-blue-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                  />
+                </svg>
               </div>
+              <span className="text-[10px] sm:text-xs text-green-400 flex items-center gap-1">
+                <svg
+                  className="w-3 h-3 sm:w-4 sm:h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                  />
+                </svg>
+                +12%
+              </span>
             </div>
-
-            {/* ESTADO INICIAL: CARGANDO */}
-            {isInitialLoading && (
-              <div className="space-y-3">
-                <ListSkeleton rows={6} />
-              </div>
-            )}
-
-            {/* ESTADO VACÍO */}
-            {isEmpty && (
-              <div className="py-10 text-center text-sm text-slate-400">
-                No hay contenido pendiente de moderación en este momento.
-              </div>
-            )}
-
-            {/* LISTA + INFINITE SCROLL */}
-            {!isInitialLoading && items.length > 0 && (
-              <div className="space-y-3">
-                {items.map((item) => (
-                  <ModerationCard key={item.id} item={item} />
-                ))}
-
-                {/* Skeleton mientras se cargan más elementos */}
-                {isLoadingMore && (
-                  <div className="pt-2">
-                    <ListSkeleton rows={3} />
-                  </div>
-                )}
-
-                {/* Sentinel para IntersectionObserver (invisible) */}
-                <div ref={sentinelRef} className="h-6 w-full" />
-
-                {/* Mensaje de fin de lista */}
-                {!hasMore && (
-                  <p className="py-4 text-center text-xs text-slate-500">
-                    Has llegado al final de la lista.
-                  </p>
-                )}
-
-                {/* Error si algo falla */}
-                {error && (
-                  <div className="mt-4 rounded-lg border border-red-500/40 bg-red-950/40 px-3 py-2 text-xs text-red-100">
-                    {error}
-                  </div>
-                )}
-              </div>
-            )}
+            <h3 className="text-xl sm:text-3xl font-bold text-white mb-1">
+              {stats.totalReviews.toLocaleString()}
+            </h3>
+            <p className="text-gray-400 text-xs sm:text-sm">Total Reviews</p>
           </div>
 
-          {/* COLUMNA DERECHA: RESUMEN / INFO EXTRA */}
-          <aside className="space-y-4">
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
-                Resumen de riesgo
-              </h3>
-              <p className="mb-3 text-xs text-slate-400">
-                Distribución rápida por nivel de riesgo dentro de la cola
-                actual.
-              </p>
-              <RiskSummary items={items} />
+          {/* Flagged Content */}
+          <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-4 sm:p-6 hover:bg-white/10 transition-all">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <div className="p-2 sm:p-3 bg-red-500/20 rounded-lg">
+                <svg
+                  className="w-4 h-4 sm:w-6 sm:h-6 text-red-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+              </div>
+              <span className="text-[10px] sm:text-xs text-red-400">
+                {stats.flaggedContent}
+              </span>
             </div>
+            <h3 className="text-xl sm:text-3xl font-bold text-white mb-1">
+              {stats.flaggedContent}
+            </h3>
+            <p className="text-gray-400 text-xs sm:text-sm">Flagged Content</p>
+          </div>
 
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
-                Notas del sistema
-              </h3>
-              <ul className="list-disc space-y-1 pl-5 text-xs text-slate-400">
-                <li>No se vacía la lista mientras se cargan más datos.</li>
-                <li>
-                  El scroll infinito se dispara de forma anticipada gracias a{" "}
-                  <code>rootMargin</code>.
-                </li>
-                <li>
-                  Se usan skeletons para evitar pantallas en blanco durante la
-                  carga.
-                </li>
-              </ul>
+          {/* Accuracy Rate */}
+          <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-4 sm:p-6 hover:bg-white/10 transition-all">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <div className="p-2 sm:p-3 bg-green-500/20 rounded-lg">
+                <svg
+                  className="w-4 h-4 sm:w-6 sm:h-6 text-green-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <span className="text-[10px] sm:text-xs text-green-400">
+                High
+              </span>
             </div>
-          </aside>
+            <h3 className="text-xl sm:text-3xl font-bold text-white mb-1">
+              {stats.accuracyRate}%
+            </h3>
+            <p className="text-gray-400 text-xs sm:text-sm">Accuracy Rate</p>
+          </div>
+
+          {/* Active Users */}
+          <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-4 sm:p-6 hover:bg-white/10 transition-all">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <div className="p-2 sm:p-3 bg-purple-500/20 rounded-lg">
+                <svg
+                  className="w-4 h-4 sm:w-6 sm:h-6 text-purple-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                  />
+                </svg>
+              </div>
+            </div>
+            <h3 className="text-xl sm:text-3xl font-bold text-white mb-1">
+              {stats.activeUsers}
+            </h3>
+            <p className="text-gray-400 text-xs sm:text-sm">Active Users</p>
+          </div>
+
+          {/* Response Time */}
+          <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-4 sm:p-6 hover:bg-white/10 transition-all">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <div className="p-2 sm:p-3 bg-yellow-500/20 rounded-lg">
+                <svg
+                  className="w-4 h-4 sm:w-6 sm:h-6 text-yellow-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+            </div>
+            <h3 className="text-xl sm:text-3xl font-bold text-white mb-1">
+              {stats.avgResponseTime}
+            </h3>
+            <p className="text-gray-400 text-xs sm:text-sm">
+              Avg Response Time
+            </p>
+          </div>
+
+          {/* Activity Status */}
+          <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-4 sm:p-6 hover:bg-white/10 transition-all">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <div className="p-2 sm:p-3 bg-indigo-500/20 rounded-lg">
+                <svg
+                  className="w-4 h-4 sm:w-6 sm:h-6 text-indigo-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
+                </svg>
+              </div>
+            </div>
+            <h3 className="text-xl sm:text-3xl font-bold text-white mb-1">
+              Live
+            </h3>
+            <p className="text-gray-400 text-xs sm:text-sm">System Status</p>
+          </div>
         </div>
-      </section>
+
+        {/* Tabs */}
+        <div className="flex gap-1 sm:gap-2 mb-4 sm:mb-6 bg-white/5 backdrop-blur-md border border-white/10 rounded-lg p-1 overflow-x-auto">
+          <button
+            onClick={() => setActiveTab("overview")}
+            className={`flex-1 min-w-[100px] px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
+              activeTab === "overview"
+                ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+                : "text-gray-300 hover:text-white"
+            }`}
+          >
+            Descripción general
+          </button>
+          <button
+            onClick={() => setActiveTab("moderation")}
+            className={`flex-1 min-w-[100px] px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
+              activeTab === "moderation"
+                ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+                : "text-gray-300 hover:text-white"
+            }`}
+          >
+            Cola de moderación
+          </button>
+          <button
+            onClick={() => setActiveTab("analytics")}
+            className={`flex-1 min-w-[100px] px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
+              activeTab === "analytics"
+                ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+                : "text-gray-300 hover:text-white"
+            }`}
+          >
+            Analítica
+          </button>
+        </div>
+
+        {/* Content Area */}
+        <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-4 sm:p-6">
+          {activeTab === "overview" && (
+            <div>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-white">
+                  Actividad reciente
+                </h2>
+                <div className="flex gap-2 w-full sm:w-auto">
+                  <button className="flex-1 sm:flex-none px-3 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors text-xs sm:text-sm">
+                    Buscar
+                  </button>
+                  <button className="flex-1 sm:flex-none px-3 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors text-xs sm:text-sm">
+                    Filtrar
+                  </button>
+                  <button
+                    onClick={handleGenerateAI}
+                    className="hidden sm:inline-flex px-3 py-2 bg-green-500/80 hover:bg-green-500 text-white rounded-lg transition-colors text-xs sm:text-sm"
+                  >
+                    Generar IA
+                  </button>
+                </div>
+              </div>
+
+              {/* Botón IA visible en mobile abajo */}
+              <button
+                onClick={handleGenerateAI}
+                className="sm:hidden w-full mb-4 px-3 py-2 bg-green-500/80 hover:bg-green-500 text-white rounded-lg transition-colors text-xs"
+              >
+                Generar contenido IA
+              </button>
+
+              {/* Lista de reviews */}
+              <div className="space-y-3 sm:space-y-4">
+                {items.map((item) => (
+                  <div
+                    key={item.id}
+                    className="bg-white/5 border border-white/10 rounded-lg p-3 sm:p-4 hover:bg-white/10 transition-all"
+                  >
+                    {/* HEADER */}
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-3">
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-white font-semibold text-xs sm:text-sm">
+                            {String(item.id).padStart(2, "0")}
+                          </span>
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-white font-medium text-sm sm:text-base truncate">
+                            {item.user}
+                          </p>
+                          <p className="text-gray-400 text-[10px] sm:text-xs">
+                            {item.timestamp}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* BADGES */}
+                      <div className="flex flex-wrap gap-2">
+                        <span
+                          className={`px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-medium ${
+                            statusConfig[item.status].className
+                          }`}
+                        >
+                          {statusConfig[item.status].label}
+                        </span>
+                        <span
+                          className={`px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-medium ${
+                            sentimentConfig[item.sentiment].className
+                          }`}
+                        >
+                          {sentimentConfig[item.sentiment].label}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* CONTENT TEXT */}
+                    <p className="text-gray-200 text-sm sm:text-base mb-4 leading-relaxed break-words">
+                      {item.content}
+                    </p>
+
+                    {/* ACTION BUTTONS */}
+                    <div className="grid grid-cols-4 gap-2 w-full">
+                      <button
+                        onClick={() => handleAction(item.id, "approve")}
+                        className="flex flex-col items-center justify-center gap-1 bg-green-500/20 hover:bg-green-500/30 text-green-400 border border-green-500/30 rounded-lg p-2 sm:p-3 transition-all min-h-[60px] sm:min-h-[70px]"
+                      >
+                        <svg
+                          className="w-4 h-4 sm:w-5 sm:h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                        <span className="text-[10px] sm:text-xs font-medium text-center">
+                          Aprobar
+                        </span>
+                      </button>
+
+                      <button
+                        onClick={() => handleAction(item.id, "reject")}
+                        className="flex flex-col items-center justify-center gap-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 rounded-lg p-2 sm:p-3 transition-all min-h-[60px] sm:min-h-[70px]"
+                      >
+                        <svg
+                          className="w-4 h-4 sm:w-5 sm:h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                        <span className="text-[10px] sm:text-xs font-medium text-center">
+                          Rechazar
+                        </span>
+                      </button>
+
+                      <button
+                        onClick={() => handleAction(item.id, "flag")}
+                        className="flex flex-col items-center justify-center gap-1 bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-300 border border-yellow-500/30 rounded-lg p-2 sm:p-3 transition-all min-h-[60px] sm:min-h-[70px]"
+                      >
+                        <svg
+                          className="w-4 h-4 sm:w-5 sm:h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"
+                          />
+                        </svg>
+                        <span className="text-[10px] sm:text-xs font-medium text-center">
+                          Bandera
+                        </span>
+                      </button>
+
+                      <button
+                        onClick={() => handleAction(item.id, "review")}
+                        className="flex flex-col items-center justify-center gap-1 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/30 rounded-lg p-2 sm:p-3 transition-all min-h-[60px] sm:min-h-[70px]"
+                      >
+                        <svg
+                          className="w-4 h-4 sm:w-5 sm:h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                          />
+                        </svg>
+                        <span className="text-[10px] sm:text-xs font-medium text-center">
+                          Reseña
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Sentinel para scroll infinito */}
+              <div ref={sentinelRef} className="h-6 w-full" />
+
+              {/* Estado de paginación */}
+              <div className="mt-4 flex flex-col items-center gap-2 text-xs text-gray-300">
+                <div>
+                  Página {currentPage} de {totalPages}
+                  {!hasMore && " · Fin de la lista"}
+                </div>
+                {loading && (
+                  <div className="text-[11px] text-gray-300">
+                    Cargando más contenido...
+                  </div>
+                )}
+                {!loading && hasMore && (
+                  <button
+                    onClick={loadMore}
+                    className="px-3 py-1.5 rounded-full border border-white/20 bg-white/5 hover:bg-white/10 text-[11px]"
+                  >
+                    Cargar más
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === "moderation" && (
+            <div className="text-center py-8 sm:py-12">
+              <div className="p-3 sm:p-4 bg-purple-500/20 rounded-full w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 flex items-center justify-center">
+                <svg
+                  className="w-8 h-8 sm:w-10 sm:h-10 text-purple-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">
+                Cola de Moderación
+              </h3>
+              <p className="text-gray-300 text-sm sm:text-base mb-6 px-4">
+                Herramientas avanzadas de moderación y gestión de flujo de
+                trabajo.
+              </p>
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 max-w-md mx-auto px-4">
+                <div className="bg-white/5 border border-white/10 rounded-lg p-3 sm:p-4">
+                  <div className="text-3xl sm:text-4xl mb-2">⏳</div>
+                  <p className="text-white font-semibold text-sm sm:text-base">
+                    12 Pendientes
+                  </p>
+                  <p className="text-gray-400 text-xs">En revisión actual</p>
+                </div>
+                <div className="bg-white/5 border border-white/10 rounded-lg p-3 sm:p-4">
+                  <div className="text-3xl sm:text-4xl mb-2">✓</div>
+                  <p className="text-white font-semibold text-sm sm:text-base">
+                    {stats.approvedContent} Aprobados
+                  </p>
+                  <p className="text-gray-400 text-xs">Total aprobados</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "analytics" && (
+            <div className="text-center py-8 sm:py-12">
+              <div className="p-3 sm:p-4 bg-blue-500/20 rounded-full w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 flex items-center justify-center">
+                <svg
+                  className="w-8 h-8 sm:w-10 sm:h-10 text-blue-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">
+                Dashboard de Analítica
+              </h3>
+              <p className="text-gray-300 text-sm sm:text-base mb-6 px-4">
+                Información completa y métricas de rendimiento para tu sistema
+                de moderación.
+              </p>
+              <div className="grid grid-cols-3 gap-3 sm:gap-4 max-w-2xl mx-auto px-4">
+                <div className="bg-white/5 border border-white/10 rounded-lg p-3 sm:p-4">
+                  <div className="text-3xl sm:text-4xl mb-2">📈</div>
+                  <p className="text-white font-semibold text-sm sm:text-base">
+                    +24%
+                  </p>
+                  <p className="text-gray-400 text-xs">Crecimiento</p>
+                </div>
+                <div className="bg-white/5 border border-white/10 rounded-lg p-3 sm:p-4">
+                  <div className="text-3xl sm:text-4xl mb-2">🎯</div>
+                  <p className="text-white font-semibold text-sm sm:text-base">
+                    {stats.accuracyRate}%
+                  </p>
+                  <p className="text-gray-400 text-xs">Precisión</p>
+                </div>
+                <div className="bg-white/5 border border-white/10 rounded-lg p-3 sm:p-4">
+                  <div className="text-3xl sm:text-4xl mb-2">⏱️</div>
+                  <p className="text-white font-semibold text-sm sm:text-base">
+                    {stats.avgResponseTime}
+                  </p>
+                  <p className="text-gray-400 text-xs">Respuesta</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="mt-6 sm:mt-8 text-center px-4">
+          <p className="text-gray-400 text-[11px] sm:text-xs">
+            Content Guardian v1.0.0 · Plataforma de moderación de contenido con
+            IA · Desarrollado con Next.js 14 y TypeScript · © 2024 Karl H.
+            Camaro Porta
+          </p>
+        </div>
+      </div>
     </main>
   );
-};
-
-export default ContentGuardianPage;
-
-/* ------------------------------------------------------------------ */
-/*  COMPONENTES DE APOYO                                              */
-/* ------------------------------------------------------------------ */
-
-const KpiCard: React.FC<{ label: string; value: number }> = ({
-  label,
-  value,
-}) => {
-  return (
-    <div className="flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-950/70 px-4 py-3">
-      <div>
-        <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
-          {label}
-        </p>
-        <p className="mt-1 text-xl font-semibold text-slate-50">{value}</p>
-      </div>
-      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-900/80 text-[10px] text-slate-400">
-        KPI
-      </div>
-    </div>
-  );
-};
-
-const ModerationCard: React.FC<{ item: ModerationItem }> = ({ item }) => {
-  const statusBadge = useMemo(() => {
-    switch (item.status) {
-      case "approved":
-        return {
-          label: "Aprobado",
-          className:
-            "bg-emerald-500/10 text-emerald-300 border border-emerald-500/40",
-        };
-      case "rejected":
-        return {
-          label: "Rechazado",
-          className: "bg-red-500/10 text-red-300 border border-red-500/40",
-        };
-      case "flagged":
-        return {
-          label: "Marcado",
-          className:
-            "bg-amber-500/10 text-amber-300 border border-amber-500/40",
-        };
-      default:
-        return {
-          label: "Pendiente",
-          className:
-            "bg-sky-500/10 text-sky-300 border border-sky-500/40 animate-pulse",
-        };
-    }
-  }, [item.status]);
-
-  const riskLabel = useMemo(() => {
-    switch (item.riskLevel) {
-      case "high":
-        return "Riesgo alto";
-      case "medium":
-        return "Riesgo medio";
-      default:
-        return "Riesgo bajo";
-    }
-  }, [item.riskLevel]);
-
-  return (
-    <article className="group rounded-xl border border-slate-800/80 bg-slate-950/80 px-3 py-3 text-sm shadow-sm shadow-black/40 transition-transform duration-150 hover:-translate-y-[1px] hover:border-slate-600/80">
-      <div className="mb-2 flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="relative h-9 w-9 overflow-hidden rounded-full bg-slate-800">
-            {item.avatarUrl ? (
-              <Image
-                src={item.avatarUrl}
-                alt={item.userName}
-                fill
-                sizes="36px"
-                className="object-cover"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-slate-300">
-                {item.userName.slice(0, 2).toUpperCase()}
-              </div>
-            )}
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-slate-100">
-              {item.userName}
-            </p>
-            <p className="text-[11px] text-slate-500">
-              {new Date(item.createdAt).toLocaleString()}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex flex-col items-end gap-1">
-          <span
-            className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] ${statusBadge.className}`}
-          >
-            {statusBadge.label}
-          </span>
-          <span className="rounded-full bg-slate-900/90 px-2 py-0.5 text-[10px] text-slate-400">
-            {riskLabel}
-          </span>
-        </div>
-      </div>
-
-      <p className="line-clamp-3 text-xs text-slate-200">{item.content}</p>
-
-      <div className="mt-3 flex items-center justify-between gap-2">
-        <div className="flex flex-wrap gap-1">
-          <span className="rounded-full bg-slate-900/80 px-2 py-0.5 text-[10px] text-slate-400">
-            {item.category}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            className="rounded-full bg-slate-900/80 px-2 py-1 text-[11px] text-slate-200 hover:bg-emerald-500/10 hover:text-emerald-200"
-          >
-            Aprobar
-          </button>
-          <button
-            type="button"
-            className="rounded-full bg-slate-900/80 px-2 py-1 text-[11px] text-slate-200 hover:bg-red-500/10 hover:text-red-200"
-          >
-            Rechazar
-          </button>
-          <button
-            type="button"
-            className="rounded-full bg-slate-900/80 px-2 py-1 text-[11px] text-slate-300 hover:bg-amber-500/10 hover:text-amber-200"
-          >
-            Marcar
-          </button>
-        </div>
-      </div>
-    </article>
-  );
-};
-
-const ListSkeleton: React.FC<{ rows?: number }> = ({ rows = 4 }) => {
-  return (
-    <div className="space-y-3">
-      {Array.from({ length: rows }).map((_, idx) => (
-        <div
-          key={idx}
-          className="h-20 rounded-xl bg-slate-900/70 ring-1 ring-slate-800/80 animate-pulse"
-        />
-      ))}
-    </div>
-  );
-};
-
-const RiskSummary: React.FC<{ items: ModerationItem[] }> = ({ items }) => {
-  const totals = useMemo(() => {
-    const base = { low: 0, medium: 0, high: 0 };
-    for (const item of items) {
-      base[item.riskLevel] = base[item.riskLevel] + 1;
-    }
-    return base;
-  }, [items]);
-
-  const total = totals.low + totals.medium + totals.high || 1;
-
-  const pct = {
-    low: Math.round((totals.low / total) * 100),
-    medium: Math.round((totals.medium / total) * 100),
-    high: Math.round((totals.high / total) * 100),
-  };
-
-  return (
-    <div className="space-y-3 text-xs">
-      <RiskBar label="Bajo" value={pct.low} />
-      <RiskBar label="Medio" value={pct.medium} />
-      <RiskBar label="Alto" value={pct.high} />
-    </div>
-  );
-};
-
-const RiskBar: React.FC<{ label: string; value: number }> = ({
-  label,
-  value,
-}) => {
-  return (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between text-[11px] text-slate-300">
-        <span>{label}</span>
-        <span className="text-slate-400">{value}%</span>
-      </div>
-      <div className="h-2 overflow-hidden rounded-full bg-slate-900">
-        <div
-          className="h-full rounded-full bg-gradient-to-r from-emerald-400/80 via-sky-400/80 to-slate-300/80"
-          style={{ width: `${value}%` }}
-        />
-      </div>
-    </div>
-  );
-};
+}
